@@ -3,6 +3,9 @@
 ppt/
 reference/
 
+# data 测试数据
+data/
+
 # 编译/运行产物
 *.dump
 
