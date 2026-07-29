@@ -1,0 +1,11 @@
+# PDF 二进制文件
+*.pdf
+ppt/
+reference/
+
+# 编译/运行产物
+*.dump
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
