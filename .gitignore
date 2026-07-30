@@ -12,3 +12,6 @@ data/
 # 操作系统文件
 .DS_Store
 Thumbs.db
+
+# 计划文件
+NAIVE_INTERPRETER_PLAN.md
