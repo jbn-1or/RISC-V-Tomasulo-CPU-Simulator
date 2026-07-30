@@ -16,3 +16,7 @@ decoder_test
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md
+
+# CMake 构建产物
+build/
+cmake-build-*/

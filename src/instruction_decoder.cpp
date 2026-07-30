@@ -1,4 +1,4 @@
-#include "../include/instruction_decoder.hpp"
+#include "instruction_decoder.hpp"
 
 #include <cstdint>
 #include <string>

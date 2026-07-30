@@ -1,4 +1,4 @@
-#include "../include/instruction_fetch.hpp"
+#include "instruction_fetch.hpp"
 
 namespace riscv {
 
