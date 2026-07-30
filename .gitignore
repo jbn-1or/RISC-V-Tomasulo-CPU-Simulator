@@ -1,4 +1,4 @@
-# PDF 二进制文件
+# PDF 文件
 *.pdf
 ppt/
 reference/
@@ -6,12 +6,13 @@ reference/
 # data 测试数据
 data/
 
-# 编译/运行产物
-*.dump
-
 # 操作系统文件
 .DS_Store
 Thumbs.db
+
+# 测试
+decoder_test.cpp
+decoder_test
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md

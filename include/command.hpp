@@ -26,7 +26,7 @@ struct Command {
     uint32_t funct7 = 0;      // funct7
 
     int32_t imm = 0;          // 立即数，已经做完符号扩展后的值
-    std::string mnemonic;     // 可选：指令名，如 add, addi, lw
+    std::string cmdname;     // 指令名，如 add, addi, lw
 
     bool is_branch() const { return type == InstrType::B; }
     bool is_jump() const { return type == InstrType::J; }
