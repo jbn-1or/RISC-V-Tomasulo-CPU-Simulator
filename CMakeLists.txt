@@ -13,11 +13,15 @@ set(COMMON_SOURCES
     src/memory_loader.cpp
 )
 
-# naive interpreter
-add_library(naive_lib STATIC
+# naive interpreter — standalone executable
+add_executable(naive
     naive/naive.cpp
+    src/alu.cpp
+    src/instruction_fetch.cpp
+    src/instruction_decoder.cpp
+    src/memory_loader.cpp
 )
-target_include_directories(naive_lib PRIVATE include)
+target_include_directories(naive PRIVATE include)
 
 # tomasulo simulator
 set(TOMASULO_SOURCES
@@ -33,4 +37,3 @@ set(TOMASULO_SOURCES
 
 add_executable(tomasulo_simulator ${TOMASULO_SOURCES})
 target_include_directories(tomasulo_simulator PRIVATE include)
-target_link_libraries(tomasulo_simulator PRIVATE naive_lib)
