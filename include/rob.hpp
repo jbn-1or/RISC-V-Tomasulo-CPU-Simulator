@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "cdb.hpp"
 #include "command.hpp"
 
 namespace riscv {
@@ -47,9 +48,9 @@ int32_t rob_allocate(const CPUState& c, CPUState& n, const Command& cmd,
                      uint32_t branch_target, uint32_t predicted_target,
                      uint32_t next_pc);
 
-/// CDB 捕获阶段：按 cdb.rob_idx 匹配 ROB 条目标记 ready 并接收 value；
+/// CDB 捕获阶段：按 sig.rob_idx 匹配 ROB 条目标记 ready 并接收 value；
 /// 分支指令回填 branch_taken / branch_target
-void rob_cdb_capture(const CPUState& c, CPUState& n);
+void rob_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig);
 
 /// 提交阶段：head 处条目就绪则顺序提交
 /// （写 regs / 写 memory / 更新 predictor / 检测终止哨兵，head++）

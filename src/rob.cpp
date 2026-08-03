@@ -36,12 +36,12 @@ int32_t rob_allocate(const CPUState& c, CPUState& n, const Command& cmd,
     return static_cast<int32_t>(idx);
 }
 
-void rob_cdb_capture(const CPUState& c, CPUState& n) {
-    if (!c.cdb.valid) {
+void rob_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
+    if (!sig.valid) {
         return;
     }
     // 按 rob_idx 匹配：CDB 唤醒/捕获 tag 统一为 rob_idx（见 DESIGN.md §2 顶部说明）
-    int32_t idx = c.cdb.rob_idx;
+    int32_t idx = sig.rob_idx;
     if (idx < 0 || idx >= ROB_SIZE) {
         return;
     }
@@ -50,11 +50,11 @@ void rob_cdb_capture(const CPUState& c, CPUState& n) {
     }
     RobEntry& slot = n.rob[idx];
     slot.ready = true;
-    slot.value = c.cdb.value;
-    if (c.cdb.is_branch) {
+    slot.value = sig.value;
+    if (sig.is_branch) {
         // 分支指令：回填执行结果（taken 与目标地址）
-        slot.branch_taken = c.cdb.branch_taken;
-        slot.branch_target = c.cdb.branch_target;
+        slot.branch_taken = sig.branch_taken;
+        slot.branch_target = sig.branch_target;
     }
 }
 

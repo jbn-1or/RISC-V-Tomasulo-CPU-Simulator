@@ -34,11 +34,11 @@ private:
     /// 执行阶段：RS 就绪项执行、LSU 推进
     void execute(const CPUState& c, CPUState& n);
 
-    /// CDB 仲裁：从完成结果中选一个广播
-    void cdb_arbitrate(const CPUState& c, CPUState& n);
+    /// CDB 仲裁（组合线）：从完成结果中选一个广播，返回本周期广播信号
+    CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n);
 
-    /// CDB 广播捕获：所有 RS 槽位 + ROB 捕获 CDB 结果
-    void cdb_capture(const CPUState& c, CPUState& n);
+    /// CDB 广播捕获（组合线）：以仲裁信号为输入，同周期广播到 RS/LSQ/ROB
+    void cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig);
 
     /// ROB 提交：顺序提交一条指令
     void commit(const CPUState& c, CPUState& n);

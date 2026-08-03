@@ -40,9 +40,6 @@ struct CPUState {
     // 分支预测器
     BranchPredictor predictor;
 
-    // CDB 广播信号
-    CdbSignal cdb;
-
     // 流水线控制 / 统计
     bool need_flush = false;   // 分支预测失败
     bool stopped = false;      // 遇到终止哨兵 0x0ff00513
