@@ -105,10 +105,18 @@ AluResult alu_execute(const AluInput& in) {
     } else if (op == "auipc") {
         res.value = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jal") {
+        // 控制流指令：恒 taken。is_branch 覆盖 B/J/JALR（见 DESIGN.md §4.4），
+        // 使经 CDB 广播时 ROB 能按 is_branch 捕获真实目标（next_pc）。
+        res.is_branch = true;
+        res.branch_taken = true;
         res.is_jump = true;
         res.value = in.pc + 4u;
         res.next_pc = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jalr") {
+        // 同 JAL：恒 taken；真实目标（=rs1+imm 并对齐）写入 next_pc 供 ROB 捕获，
+        // commit 阶段与 predicted_target（pc+imm）比较以检测误预测。
+        res.is_branch = true;
+        res.branch_taken = true;
         res.is_jump = true;
         res.value = in.pc + 4u;
         uint32_t target = in.rs1_val + static_cast<uint32_t>(cmd.imm);

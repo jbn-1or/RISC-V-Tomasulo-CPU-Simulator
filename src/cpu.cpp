@@ -44,8 +44,10 @@ bool CPU::rob_empty(const CPUState& s) const {
 
 // --- port 方法（每周期至多调用一次） ---
 
-/// 发射一条指令（取指+解码+分配 RS/ROB）
-// 取指、终止哨兵检查、解码、资源检查、分支预测、分配 RS/ROB、更新 reg_status、更新 PC
+/// 发射一条指令（取指+解码+分配 RS/ROB/LSQ）
+// 取指、解码、资源检查、分支预测、分配 ROB→LSQ（访存类）→RS、回填 LSQ.rs_tag、
+// 更新 reg_status（指向 ROB 条目索引）、更新 PC。
+// 终止哨兵 0x0ff00513 作为普通指令发射，由 commit 阶段停机（见 DESIGN.md §4.1）。
 void CPU::issue(const CPUState& /*c*/, CPUState& /*n*/) {
 }
 
@@ -54,13 +56,16 @@ void CPU::issue(const CPUState& /*c*/, CPUState& /*n*/) {
 void CPU::execute(const CPUState& /*c*/, CPUState& /*n*/) {
 }
 
-/// CDB ：从完成结果中选一个广播（优先级 RS > LSU）
-// 扫描 RS done 项与 LSU 完成项，选一个填入 cdb
+/// CDB ：从完成结果中选一个广播（扫描 RS.done 与 LSQ load 完成项，选 rob_idx 最小者）
+// 算术/分支来自 RS.done（rob_idx=rs.rob_idx）；load 由 LSQ 完成项直通 CDB（rob_idx=lsq.rob_idx）
+// 广播后释放生产者：算术/分支释放自身 RS 槽；load 释放关联 RS 槽 rs[lsq.rs_tag] + LSQ 槽；
+// 释放的槽位下一周期才对 issue 可见（issue 只读 cur）
 void CPU::cdb_arbitrate(const CPUState& /*c*/, CPUState& /*n*/) {
 }
 
-/// CDB ：所有 RS 槽位 + ROB 捕获 CDB 结果
-// q1/q2 匹配捕获 value；ROB rs_tag 匹配 → ready
+/// CDB ：所有 RS 槽位 + LSQ 槽位 + ROB 捕获 CDB 结果
+// RS/LSQ 按 cdb.rob_idx 匹配 q1/q2 捕获 value；ROB 按 cdb.rob_idx 捕获 → ready。
+// （唤醒/捕获 tag 统一为 rob_idx，见 DESIGN.md §2 顶部说明）
 void CPU::cdb_capture(const CPUState& c, CPUState& n) {
     ::riscv::rob_cdb_capture(c, n);
 }

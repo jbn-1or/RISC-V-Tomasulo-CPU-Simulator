@@ -16,7 +16,8 @@ struct CPUState {
     // 寄存器文件（仅 commit 时写，ROB 有序提交后的架构状态）
     uint32_t regs[32] = {0};
 
-    // 寄存器状态表（-1 表示值在 regs 中就绪；否则指向保留站 tag）
+    // 寄存器状态表（-1 表示值在 regs 中就绪；否则指向 ROB 条目索引 rob_idx，
+    // 见 DESIGN.md §2 顶部"寄存器重命名 / 唤醒 tag 说明"）
     int32_t reg_status[32];
 
     // 内存（字节寻址）

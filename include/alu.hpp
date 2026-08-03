@@ -17,11 +17,11 @@ struct AluInput {
 struct AluResult {
     uint32_t value = 0;        // 数据通路输出
 
-    uint32_t next_pc = 0;      // 控制通路输出
+    uint32_t next_pc = 0;      // 控制通路输出（B: 分支目标；J/JALR: 跳转目标）
 
-    bool branch_taken = false; // 分支条件是否成立
-    bool is_branch = false; // 是否是 B 型指令
-    bool is_jump = false; // 是否是 JAL / JALR
+    bool branch_taken = false; // 分支条件是否成立（J/JALR 恒 true）
+    bool is_branch = false;    // 是否为控制流指令（B / JAL / JALR）
+    bool is_jump = false;      // 是否为 JAL / JALR
 };
 
 struct ALU {
