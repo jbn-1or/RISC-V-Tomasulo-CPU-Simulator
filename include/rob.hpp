@@ -5,7 +5,7 @@
 
 namespace riscv {
 
-constexpr int ROB_SIZE = 32;
+constexpr int ROB_SIZE = 16;
 
 struct RobEntry {
     bool busy = false;

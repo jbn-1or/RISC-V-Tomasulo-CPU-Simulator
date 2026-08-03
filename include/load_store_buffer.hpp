@@ -17,6 +17,6 @@ struct LsuSlot {
     int cycle = 0;  // 0=地址, 1=访存, 2=完成
 };
 
-constexpr int LSU_COUNT = 2;
+constexpr int LSU_COUNT = 4;
 
 }  // namespace riscv

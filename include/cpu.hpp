@@ -28,10 +28,8 @@ public:
     // === 寄存器状态表（-1 表示值在 regs 中就绪；否则指向 RS tag）===
     int32_t reg_status[32];
 
-    // === 保留站（按功能分组） ===
-    RsEntry rs_alu[RS_ALU_COUNT];
-    RsEntry rs_br[RS_BR_COUNT];
-    RsEntry rs_mem[RS_MEM_COUNT];
+    // === 保留站（统一池） ===
+    RsEntry rs[RS_SIZE];
 
     // === 重排序缓冲（环形缓冲区） ===
     RobEntry rob[ROB_SIZE];

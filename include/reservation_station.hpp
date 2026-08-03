@@ -20,14 +20,8 @@ struct RsEntry {
     uint32_t result = 0;
 };
 
-constexpr int RS_ALU_COUNT = 3;
-constexpr int RS_BR_COUNT  = 1;
-constexpr int RS_MEM_COUNT = 2;
+constexpr int RS_SIZE = 8;
 
-inline int get_rs_tag(int group, int idx) {
-    if (group == 0) return idx;                         // ALU: 0..2
-    if (group == 1) return RS_ALU_COUNT + idx;          // BR: 3
-    return RS_ALU_COUNT + RS_BR_COUNT + idx;            // MEM: 4..5
-}
+inline int rs_tag(int idx) { return idx; }
 
 }  // namespace riscv
