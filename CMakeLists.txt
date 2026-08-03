@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # common sources (decoder, loader, etc.)
 set(COMMON_SOURCES
     src/cpu.cpp
-    src/executor.cpp
     src/instruction_fetch.cpp
     src/instruction_decoder.cpp
     src/memory_loader.cpp
@@ -31,9 +30,15 @@ set(TOMASULO_SOURCES
     src/rob.cpp
     src/cdb.cpp
     src/load_store_buffer.cpp
-    src/branch_predictor.cpp
     src/main.cpp
 )
 
 add_executable(tomasulo_simulator ${TOMASULO_SOURCES})
 target_include_directories(tomasulo_simulator PRIVATE include)
+
+# decoder unit test
+add_executable(decoder_test
+    src/decoder_test.cpp
+    src/instruction_decoder.cpp
+)
+target_include_directories(decoder_test PRIVATE include)
