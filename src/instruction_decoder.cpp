@@ -112,7 +112,6 @@ const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
                     switch (funct7) {
                         case 0b0000000: return "add";
                         case 0b0100000: return "sub";
-                        case 0b0000001: return "mul";
                         default: return "unknown_r";
                     }
                 case 0b001: return "sll";

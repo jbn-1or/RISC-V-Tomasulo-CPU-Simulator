@@ -36,10 +36,6 @@ AluResult alu_execute(const AluInput& in) {
         res.value = in.rs1_val | in.rs2_val;
     } else if (op == "and") {
         res.value = in.rs1_val & in.rs2_val;
-    } else if (op == "mul") {
-        res.value = static_cast<uint32_t>(
-            static_cast<int32_t>(in.rs1_val) *
-            static_cast<int32_t>(in.rs2_val));
     }
     
     // I-type arithmetic immediate
