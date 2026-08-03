@@ -13,6 +13,7 @@ Thumbs.db
 # 测试
 decoder_test.cpp
 decoder_test
+rob_test.cpp
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md

@@ -42,3 +42,10 @@ add_executable(decoder_test
     src/instruction_decoder.cpp
 )
 target_include_directories(decoder_test PRIVATE include)
+
+# rob unit test
+add_executable(rob_test
+    src/rob_test.cpp
+    src/rob.cpp
+)
+target_include_directories(rob_test PRIVATE include)

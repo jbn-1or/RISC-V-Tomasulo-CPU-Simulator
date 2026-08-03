@@ -7,8 +7,6 @@
 namespace riscv {
 
 CPU::CPU() {
-    // cur 已由 CPUState 默认构造初始化
-    // （regs=0, reg_status=-1, rob_head=tail=0, stopped=false, ...）
     next = cur;
 }
 
@@ -20,19 +18,18 @@ bool CPU::load_program(const std::string& path) {
     return true;
 }
 
-// 以下为双状态重构后的 port / wire 骨架（空实现）。
-// 每个方法对应后续阶段的实现点，当前仅保证可编译链接。
+// 双状态重构后的 port / wire 骨架
 
 
 /// 是否有空闲 RS 槽位
-// TODO(阶段 2: RS): 遍历 rs[] 检查是否存在 busy == false
+// 遍历 rs[] 检查是否存在 busy == false
 bool CPU::rs_has_free(const CPUState& /*s*/) const {
     return false;
 }
 
 /// ROB 是否满（环形缓冲，(tail+1)%ROB_SIZE == head）
-bool CPU::rob_is_full(const CPUState& /*s*/) const {
-    return false;
+bool CPU::rob_is_full(const CPUState& s) const {
+    return ::riscv::rob_is_full(s);
 }
 
 /// LSU 是否有空闲槽位接受新访存
@@ -41,8 +38,8 @@ bool CPU::lsu_has_free(const CPUState& /*s*/) const {
 }
 
 /// ROB 是否为空（head == tail）
-bool CPU::rob_empty(const CPUState& /*s*/) const {
-    return false;
+bool CPU::rob_empty(const CPUState& s) const {
+    return ::riscv::rob_empty(s);
 }
 
 // --- port 方法（每周期至多调用一次） ---
@@ -64,12 +61,14 @@ void CPU::cdb_arbitrate(const CPUState& /*c*/, CPUState& /*n*/) {
 
 /// CDB ：所有 RS 槽位 + ROB 捕获 CDB 结果
 // q1/q2 匹配捕获 value；ROB rs_tag 匹配 → ready
-void CPU::cdb_capture(const CPUState& /*c*/, CPUState& /*n*/) {
+void CPU::cdb_capture(const CPUState& c, CPUState& n) {
+    ::riscv::rob_cdb_capture(c, n);
 }
 
 /// ROB 提交：顺序提交一条指令
 // head 若 ready → 写 regs/写 memory、更新 predictor、检测终止哨兵、释放条目、head++
-void CPU::commit(const CPUState& /*c*/, CPUState& /*n*/) {
+void CPU::commit(const CPUState& c, CPUState& n) {
+    ::riscv::rob_commit(c, n);
 }
 
 /// Flush 流水线（分支预测失败时）

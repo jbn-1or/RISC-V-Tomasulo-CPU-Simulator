@@ -8,8 +8,7 @@
 namespace riscv {
 
 class CPU {
-public:
-    // cur = 当前周期状态，next = 下一周期状态
+public:                   
     CPUState cur;
     CPUState next;
 
