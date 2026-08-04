@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 
+#include "cdb.hpp"
 #include "instruction_fetch.hpp"
 #include "instruction_decoder.hpp"
 #include "memory_loader.hpp"
@@ -61,15 +62,15 @@ void CPU::execute(const CPUState& /*c*/, CPUState& /*n*/) {
 // 算术/分支来自 RS.done（rob_idx=rs.rob_idx）；load 由 LSQ 完成项直通 CDB（rob_idx=lsq.rob_idx）
 // 广播后释放生产者：算术/分支释放自身 RS 槽；load 释放关联 RS 槽 rs[lsq.rs_tag] + LSQ 槽；
 // 释放的槽位下一周期才对 issue 可见（issue 只读 cur）
-CdbSignal CPU::cdb_arbitrate(const CPUState& /*c*/, CPUState& /*n*/) {
-    return CdbSignal{};
+CdbSignal CPU::cdb_arbitrate(const CPUState& c, CPUState& n) {
+    return ::riscv::cdb_arbitrate(c, n);
 }
 
 /// CDB 广播捕获（组合线）：以仲裁信号为输入，同周期广播到 RS/LSQ/ROB
 // RS/LSQ 按 sig.rob_idx 匹配 q1/q2 捕获 value；ROB 按 sig.rob_idx 捕获 → ready。
 // （唤醒/捕获 tag 统一为 rob_idx，见 DESIGN.md §2 顶部说明）
 void CPU::cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
-    ::riscv::rob_cdb_capture(c, n, sig);
+    ::riscv::cdb_capture(c, n, sig);
 }
 
 /// ROB 提交：顺序提交一条指令

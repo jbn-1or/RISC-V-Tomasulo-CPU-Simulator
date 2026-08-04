@@ -64,3 +64,13 @@ add_executable(lsq_test
     src/rob.cpp
 )
 target_include_directories(lsq_test PRIVATE include)
+
+# cdb unit test
+add_executable(cdb_test
+    src/cdb_test.cpp
+    src/cdb.cpp
+    src/reservation_station.cpp
+    src/load_store_buffer.cpp
+    src/rob.cpp
+)
+target_include_directories(cdb_test PRIVATE include)
