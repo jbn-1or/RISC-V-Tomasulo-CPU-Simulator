@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 
 #include "branch_predictor.hpp"
 #include "cdb.hpp"
@@ -12,6 +11,9 @@
 namespace riscv {
 
 /// 全部硬件状态（cur / next 两份实例）
+// 注：内存（memory）不在此结构内——store 仅在 commit（顺序提交）时写内存，
+// 属于架构状态、天然按序更新，无需 cur/next 双缓冲；放在 CPU 类作为单实例成员，
+// 由需要访存的 port（issue 取指 / LSQ load 读 / rob_commit 写 store）按引用传入。
 struct CPUState {
     // 寄存器文件（仅 commit 时写，ROB 有序提交后的架构状态）
     uint32_t regs[32] = {0};
@@ -19,9 +21,6 @@ struct CPUState {
     // 寄存器状态表（-1 表示值在 regs 中就绪；否则指向 ROB 条目索引 rob_idx，
     // 见 DESIGN.md §2 顶部"寄存器重命名 / 唤醒 tag 说明"）
     int32_t reg_status[32];
-
-    // 内存（字节寻址）
-    std::map<uint32_t, uint8_t> memory;
 
     // 程序计数器
     uint32_t pc = 0;

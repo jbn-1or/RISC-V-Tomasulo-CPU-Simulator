@@ -12,7 +12,7 @@ CPU::CPU() {
 
 bool CPU::load_program(const std::string& path) {
     uint32_t max_addr;
-    if (!load_program_from_data(path, cur.memory, max_addr))
+    if (!load_program_from_data(path, memory, max_addr))
         return false;
     cur.pc = 0;  // 从地址 0 开始取指
     return true;
@@ -47,7 +47,8 @@ bool CPU::rob_empty(const CPUState& s) const {
 /// 发射一条指令（取指+解码+分配 RS/ROB/LSQ）
 // 取指、解码、资源检查、分支预测、分配 ROB→LSQ（访存类）→RS、回填 LSQ.rs_tag、
 // 更新 reg_status（指向 ROB 条目索引）、更新 PC。
-// 终止哨兵 0x0ff00513 作为普通指令发射，由 commit 阶段停机（见 DESIGN.md §4.1）。
+// 取指读 CPU::memory（单实例，非 CPUState）；终止哨兵 0x0ff00513 作为普通指令发射，
+// 由 commit 阶段停机（见 DESIGN.md §4.1）。
 void CPU::issue(const CPUState& /*c*/, CPUState& /*n*/) {
 }
 
@@ -73,8 +74,9 @@ void CPU::cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
 
 /// ROB 提交：顺序提交一条指令
 // head 若 ready → 写 regs/写 memory、更新 predictor、检测终止哨兵、释放条目、head++
+// 写 store 内存时使用 CPU::memory（单实例，按序提交无并发写冲突）
 void CPU::commit(const CPUState& c, CPUState& n) {
-    ::riscv::rob_commit(c, n);
+    ::riscv::rob_commit(c, n, memory);
 }
 
 /// Flush 流水线（分支预测失败时）

@@ -58,7 +58,8 @@ void rob_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
     }
 }
 
-void rob_commit(const CPUState& c, CPUState& n) {
+void rob_commit(const CPUState& c, CPUState& n,
+                std::map<uint32_t, uint8_t>& memory) {
     if (rob_empty(c)) {
         return;
     }
@@ -93,7 +94,7 @@ void rob_commit(const CPUState& c, CPUState& n) {
             default:    width = 4; break;
         }
         for (uint32_t b = 0; b < width; ++b) {
-            n.memory[addr + b] =
+            memory[addr + b] =
                 static_cast<uint8_t>((data >> (b * 8)) & 0xFF);
         }
     }

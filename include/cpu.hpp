@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <string>
 
 #include "cpu_state.hpp"
@@ -11,6 +12,11 @@ class CPU {
 public:                   
     CPUState cur;
     CPUState next;
+
+    // 内存（字节寻址）：单实例，不参与 cur/next 双缓冲。
+    // store 仅在 commit（顺序提交）时写；issue 取指 / LSQ load 读 / rob_commit 写 store
+    // 均按引用传入此成员。见 cpu_state.hpp 顶部说明。
+    std::map<uint32_t, uint8_t> memory;
 
     CPU();
 

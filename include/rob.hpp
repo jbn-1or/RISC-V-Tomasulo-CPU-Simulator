@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include "cdb.hpp"
 #include "command.hpp"
 
@@ -54,6 +55,9 @@ void rob_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig);
 
 /// 提交阶段：head 处条目就绪则顺序提交
 /// （写 regs / 写 memory / 更新 predictor / 检测终止哨兵，head++）
-void rob_commit(const CPUState& c, CPUState& n);
+/// memory 为 CPU 类持有的单实例内存（不在 CPUState 内，见 cpu_state.hpp）；
+/// store 提交时直接写入 memory（按序提交，无并发写冲突）
+void rob_commit(const CPUState& c, CPUState& n,
+                std::map<uint32_t, uint8_t>& memory);
 
 }  // namespace riscv

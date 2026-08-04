@@ -61,8 +61,8 @@ uint8_t run() {
             continue;
         }
 
-        // 分支指令
-        if (res.is_branch) {
+        // 分支指令（B 型）：不写回 rd，直接更新 PC
+        if (res.is_branch && !res.is_jump) {
             pc = res.branch_taken ? res.next_pc : pc + 4;
             continue;
         }
