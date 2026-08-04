@@ -5,8 +5,6 @@
 
 namespace riscv {
 
-namespace {
-
 // 从字符串 str 读取一个十六进制数，存入 val，返回实际读取的字符数。
 // 遇到非十六进制字符时停止。
 int read_one_hex(const char* str, unsigned& val) {
@@ -30,8 +28,6 @@ int read_one_hex(const char* str, unsigned& val) {
     }
     return count;
 }
-
-}  // namespace
 
 bool load_program_from_stream(std::istream& input,
                               std::map<uint32_t, uint8_t>& memory,
@@ -63,10 +59,10 @@ bool load_program_from_stream(std::istream& input,
             continue;
         }
 
-        // 解析本行的十六进制字节数据（空格分隔，如 "AB CD EF"）
+        // 解析
         const char* p = line.c_str();
         while (*p) {
-            // 跳过分隔符（空格、制表符等）
+            // 跳过分隔符
             if (!isxdigit(static_cast<unsigned char>(*p))) {
                 ++p;
                 continue;

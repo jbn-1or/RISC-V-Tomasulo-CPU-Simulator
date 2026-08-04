@@ -25,8 +25,8 @@ struct Command {
     uint32_t funct3 = 0;      // funct3
     uint32_t funct7 = 0;      // funct7
 
-    int32_t imm = 0;          // 立即数，已经做完符号扩展后的值
-    std::string cmdname;     // 指令名，如 add, addi, lw
+    int32_t imm = 0;          // 立即数(已经做完符号扩展)
+    std::string cmdname;     // 指令名，add, addi, lw...
 
     bool is_branch() const { return type == InstrType::B; }
     bool is_jump() const { return type == InstrType::J; }
@@ -34,17 +34,16 @@ struct Command {
         return type != InstrType::S && type != InstrType::B && type != InstrType::Unknown;
     }
 
-    /// 访存类判定：load（lb/lh/lw/lbu/lhu）
+    /// load
     bool is_load() const {
         return cmdname == "lb" || cmdname == "lh" || cmdname == "lw" ||
                cmdname == "lbu" || cmdname == "lhu";
     }
-    /// 访存类判定：store（sb/sh/sw）
+    /// store
     bool is_store() const {
         return cmdname == "sb" || cmdname == "sh" || cmdname == "sw";
     }
-    /// 是否为访存类指令（load / store）
-    // Execute 阶段据此把访存指令排除在 ALU 之外（由 LSQ 独立执行，见 DESIGN.md §5.1/§8）
+    /// 是否为load / store
     bool is_mem() const {
         return is_load() || is_store();
     }

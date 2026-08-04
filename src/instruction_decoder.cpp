@@ -5,10 +5,6 @@
 
 namespace riscv {
 
-namespace {
-
-// --- 基础字段提取 ---
-
 inline uint32_t extract_opcode(uint32_t raw) {
     return raw & 0x7F;                     // bits [6:0]
 }
@@ -32,8 +28,6 @@ inline uint32_t extract_rs2(uint32_t raw) {
 inline uint32_t extract_funct7(uint32_t raw) {
     return (raw >> 25) & 0x7F;             // bits [31:25]
 }
-
-// --- 立即数提取与符号扩展 ---
 
 // I 型立即数: bits [31:20]，12 位符号扩展到 32 位
 int32_t extract_imm_i(uint32_t raw) {
@@ -82,25 +76,21 @@ int32_t extract_imm_j(uint32_t raw) {
     return static_cast<int32_t>(imm << 11) >> 11;
 }
 
-// --- 类型判断 ---
-
 InstrType determine_type(uint32_t opcode) {
     switch (opcode) {
-        case 0b0110011: return InstrType::R;  // 寄存器-寄存器运算
-        case 0b0010011: return InstrType::I;  // 算术立即数 / 移位
-        case 0b0000011: return InstrType::I;  // 
-        case 0b1100111: return InstrType::I;  // 
-        case 0b1110011: return InstrType::I;  // 立即数和寄存器运算
-        case 0b0100011: return InstrType::S;  // 存储指令
-        case 0b1100011: return InstrType::B;  // 分支指令
-        case 0b0110111: return InstrType::U;  // 
-        case 0b0010111: return InstrType::U;  // 高位立即数构造
-        case 0b1101111: return InstrType::J;  // 跳转指令
-        default:        return InstrType::Unknown;
+        case 0b0110011: return InstrType::R;
+        case 0b0010011: return InstrType::I;
+        case 0b0000011: return InstrType::I;
+        case 0b1100111: return InstrType::I;
+        case 0b1110011: return InstrType::I;
+        case 0b0100011: return InstrType::S;
+        case 0b1100011: return InstrType::B;
+        case 0b0110111: return InstrType::U; 
+        case 0b0010111: return InstrType::U;
+        case 0b1101111: return InstrType::J;
+        default: return InstrType::Unknown;
     }
 }
-
-// --- 助记符映射 ---
 
 const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
                           uint32_t raw) {
@@ -129,7 +119,7 @@ const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
                 default: return "unknown_r";
             }
 
-        // I 型 — 算术立即数 / 移位
+        // I 型
         case 0b0010011:
             switch (funct3) {
                 case 0b000: return "addi";
@@ -148,7 +138,7 @@ const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
                 default: return "unknown_i";
             }
 
-        // I 型 — load
+        // l 型 — load
         case 0b0000011:
             switch (funct3) {
                 case 0b000: return "lb";
@@ -205,8 +195,6 @@ const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
         default: return "unknown";
     }
 }
-
-}  // anonymous namespace
 
 Command decode_instruction(uint32_t raw, uint32_t pc) {
     Command cmd;

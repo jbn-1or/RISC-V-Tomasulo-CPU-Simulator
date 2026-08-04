@@ -7,17 +7,14 @@
 
 namespace riscv {
 
+// 只读 cur、写 next。返回本周期广播信号。
 CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
-    // 组合线：只读 cur、写 next（生产者槽位释放）。返回本周期广播信号。
-    // 仲裁源 = RS.done（算术/分支/JAL/JALR）∪ LSQ load 完成项（done=true，直通 CDB）。
-    // 选 ROB 程序序最早（age 最小）者——环形 ROB 年龄约定见 §5.3，
-    // 不可用裸 rob_idx 比较（回绕时数值最小者未必最靠前）。
-    CdbSignal sig;  // valid = false 默认；无候选时原样返回
+    CdbSignal sig;
 
-    uint32_t best_age = ROB_SIZE;  // 比任何合法 age（0..ROB_SIZE-1）都大
-    int32_t best_rob = -1;         // 选中候选的 rob_idx
-    bool best_is_load = false;     // 候选来源：false = RS，true = LSQ load
-    int32_t best_idx = -1;         // 选中的槽位索引（RS 槽 或 LSQ 槽）
+    uint32_t best_age = ROB_SIZE;
+    int32_t best_rob = -1; // 选中候选的 rob_idx
+    bool best_is_load = false;  // 来源：false = RS，true = LSQ load
+    int32_t best_idx = -1;  // 选中的槽位索引（RS 槽 或 LSQ 槽）
 
     // 1) RS 候选
     for (int i = 0; i < RS_SIZE; ++i) {
@@ -35,8 +32,8 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
     }
 
     // 2) LSQ load 候选（直通 CDB）
-    for (int i = 0; i < LSU_COUNT; ++i) {
-        const LsuSlot& s = c.lsu_slots[i];
+    for (int i = 0; i < LSQ_COUNT; ++i) {
+        const LsqEntry& s = c.lsq[i];
         if (!s.busy || !s.done) {
             continue;
         }
@@ -56,7 +53,7 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
     sig.valid = true;
     if (best_is_load) {
         // load 直通：value + rob_idx（唤醒 tag）+ 关联 rs_tag（释放用）
-        const LsuSlot& s = c.lsu_slots[best_idx];
+        const LsqEntry& s = c.lsq[best_idx];
         sig.rs_tag = s.rs_tag;
         sig.rob_idx = s.rob_idx;
         sig.value = s.result;
@@ -64,7 +61,7 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
         if (s.rs_tag >= 0 && s.rs_tag < RS_SIZE) {
             n.rs[s.rs_tag].busy = false;
         }
-        n.lsu_slots[best_idx].busy = false;
+        n.lsq[best_idx].busy = false;
     } else {
         // 算术 / 分支 / JAL / JALR：value + rob_idx（唤醒 tag）+ 自身 rs_tag（释放用）
         const RsEntry& e = c.rs[best_idx];
@@ -83,8 +80,7 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
 }
 
 void cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
-    // 三端捕获：RS / LSQ 按 sig.rob_idx 匹配 q1/q2 唤醒；ROB 按 rob_idx 捕获。
-    // 各自只读 cur、可交换（见 DESIGN.md §5.4/§7）
+    // RS / LSQ 按 sig.rob_idx 匹配 q1/q2 唤醒；ROB 按 rob_idx 捕获。
     rs_cdb_capture(c, n, sig);
     lsq_cdb_capture(c, n, sig);
     rob_cdb_capture(c, n, sig);

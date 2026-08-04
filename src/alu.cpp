@@ -12,7 +12,7 @@ AluResult alu_execute(const AluInput& in) {
     const std::string& op = cmd.cmdname;
 
     
-    // R-type: register-register arithmetic
+    // R-type
     if (op == "add") {
         res.value = in.rs1_val + in.rs2_val;
     } else if (op == "sub") {
@@ -38,7 +38,7 @@ AluResult alu_execute(const AluInput& in) {
         res.value = in.rs1_val & in.rs2_val;
     }
     
-    // I-type arithmetic immediate
+    // I-type
     else if (op == "addi") {
         res.value = in.rs1_val + static_cast<uint32_t>(cmd.imm);
     } else if (op == "slli") {
@@ -63,14 +63,14 @@ AluResult alu_execute(const AluInput& in) {
         res.value = in.rs1_val & static_cast<uint32_t>(cmd.imm);
     }
     
-    // I-type Load / S-type Store: compute effective address
+    // I-type Load / S-type Store
     else if (op == "lb" || op == "lh" || op == "lw" ||
              op == "lbu" || op == "lhu" ||
              op == "sb" || op == "sh" || op == "sw") {
         res.value = in.rs1_val + static_cast<uint32_t>(cmd.imm);
     }
     
-    // B-type branch instructions
+    // B-type
     else if (op == "beq") {
         res.is_branch = true;
         res.branch_taken = (in.rs1_val == in.rs2_val);
@@ -105,7 +105,6 @@ AluResult alu_execute(const AluInput& in) {
     } else if (op == "auipc") {
         res.value = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jal") {
-        // 控制流指令：恒 taken。is_branch 覆盖 B/J/JALR（见 DESIGN.md §4.4），
         // 使经 CDB 广播时 ROB 能按 is_branch 捕获真实目标（next_pc）。
         res.is_branch = true;
         res.branch_taken = true;
@@ -113,8 +112,8 @@ AluResult alu_execute(const AluInput& in) {
         res.value = in.pc + 4u;
         res.next_pc = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jalr") {
-        // 同 JAL：恒 taken；真实目标（=rs1+imm 并对齐）写入 next_pc 供 ROB 捕获，
-        // commit 阶段与 predicted_target（pc+imm）比较以检测误预测。
+        // 真实目标（=rs1+imm 并对齐）写入 next_pc 供 ROB 捕获，
+        // commit 阶段与 predicted_target（pc+imm）比较检测误预测。
         res.is_branch = true;
         res.branch_taken = true;
         res.is_jump = true;
@@ -122,7 +121,7 @@ AluResult alu_execute(const AluInput& in) {
         uint32_t target = in.rs1_val + static_cast<uint32_t>(cmd.imm);
         res.next_pc = target & ~1u;
     }
-    // ecall / ebreak / unknown — keep defaults (zero / false)
+    // ecall / ebreak / unknown
     return res;
 }
 
