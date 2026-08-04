@@ -39,6 +39,11 @@ bool rob_is_full(const CPUState& s);
 /// ROB 是否为空（head == tail）
 bool rob_empty(const CPUState& s);
 
+/// 环形 ROB 年龄：age = (rob_idx - rob_head + ROB_SIZE) % ROB_SIZE
+/// age 越小越靠前（程序序越早）。用于分支边界判定 / store-to-load 内存序 /
+/// CDB 仲裁等所有需要"程序序先后"比较的场合（见 DESIGN.md §5.3，不可用裸 rob_idx）
+uint32_t rob_age(const CPUState& s, int32_t rob_idx);
+
 // --- port-helper 方法（读 cur、写 next） ---
 
 /// 发射阶段：在 tail 处分配一个 ROB 条目

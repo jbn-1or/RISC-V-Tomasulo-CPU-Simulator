@@ -15,6 +15,7 @@ decoder_test.cpp
 decoder_test
 rob_test.cpp
 rs_test.cpp
+lsq_test.cpp
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md

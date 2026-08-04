@@ -12,6 +12,15 @@ bool rob_empty(const CPUState& s) {
     return s.rob_head == s.rob_tail;
 }
 
+uint32_t rob_age(const CPUState& s, int32_t rob_idx) {
+    // 无效索引防御：视为"最晚"（age = ROB_SIZE），永不会被当作更早的条目
+    if (rob_idx < 0 || rob_idx >= ROB_SIZE) {
+        return ROB_SIZE;
+    }
+    // 环形年龄：age = (rob_idx - rob_head + ROB_SIZE) % ROB_SIZE
+    return (static_cast<uint32_t>(rob_idx) + ROB_SIZE - s.rob_head) % ROB_SIZE;
+}
+
 // --- port-helper 方法（读 cur、写 next） ---
 
 int32_t rob_allocate(const CPUState& c, CPUState& n, const Command& cmd,

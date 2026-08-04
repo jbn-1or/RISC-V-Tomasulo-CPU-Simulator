@@ -56,3 +56,11 @@ add_executable(rs_test
     src/reservation_station.cpp
 )
 target_include_directories(rs_test PRIVATE include)
+
+# lsq unit test
+add_executable(lsq_test
+    src/lsq_test.cpp
+    src/load_store_buffer.cpp
+    src/rob.cpp
+)
+target_include_directories(lsq_test PRIVATE include)
