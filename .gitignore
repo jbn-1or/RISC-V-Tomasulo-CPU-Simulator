@@ -16,6 +16,7 @@ test/
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md
 DESIGN.md
+handlemistake.md
 
 # CMake 构建产物
 build/

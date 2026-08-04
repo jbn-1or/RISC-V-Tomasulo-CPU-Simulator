@@ -29,6 +29,7 @@ struct RobEntry {
 };
 
 struct CPUState;
+struct ConflictDeltas;
 
 /// ROB 是否满 (tail+1)%ROB_SIZE == head
 bool rob_is_full(const CPUState& s);
@@ -48,8 +49,9 @@ int32_t rob_allocate(const CPUState& c, CPUState& n, const Command& cmd,
 /// CDB 捕获阶段：按 sig.rob_idx 匹配 ROB 条目标记 ready 并接收 value；
 void rob_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig);
 
-/// 提交阶段：head 处条目就绪则顺序提交
+/// 提交阶段：head 处条目就绪则顺序提交。
+/// reg_status 清除与误预测恢复 PC 不直接写 next，改填增量 d（交由 merge 收口）。
 void rob_commit(const CPUState& c, CPUState& n,
-                std::map<uint32_t, uint8_t>& memory);
+                std::map<uint32_t, uint8_t>& memory, ConflictDeltas& d);
 
 }  // namespace riscv

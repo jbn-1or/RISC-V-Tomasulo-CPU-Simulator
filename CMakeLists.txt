@@ -130,4 +130,19 @@ if(BUILD_TESTING)
         src/alu.cpp
     )
     target_include_directories(flush_test PRIVATE include)
+
+    # shuffle test —— 乱序验证：每周期随机打乱 {cdb, commit, execute, issue}
+    add_executable(shuffle_test
+        test/shuffle_test.cpp
+        src/cpu.cpp
+        src/instruction_fetch.cpp
+        src/instruction_decoder.cpp
+        src/memory_loader.cpp
+        src/rob.cpp
+        src/reservation_station.cpp
+        src/load_store_buffer.cpp
+        src/cdb.cpp
+        src/alu.cpp
+    )
+    target_include_directories(shuffle_test PRIVATE include)
 endif()

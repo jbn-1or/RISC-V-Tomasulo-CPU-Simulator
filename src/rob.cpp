@@ -64,7 +64,7 @@ void rob_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
 }
 
 void rob_commit(const CPUState& c, CPUState& n,
-                std::map<uint32_t, uint8_t>& memory) {
+                std::map<uint32_t, uint8_t>& memory, ConflictDeltas& d) {
     if (rob_empty(c)) {
         return;
     }
@@ -74,6 +74,8 @@ void rob_commit(const CPUState& c, CPUState& n,
     if (!slot.busy || !slot.ready) {
         return;
     }
+
+    d.commit_head = static_cast<int32_t>(head);  // 本拍 head 退役
 
     if (slot.cmd.raw == 0x0ff00513u) {
         n.stopped = true;
@@ -99,12 +101,12 @@ void rob_commit(const CPUState& c, CPUState& n,
         }
     }
 
-    // 3. 写寄存器文件（排除 x0 与不写 rd 的指令类型）
+    // 3. 写寄存器文件（排除 x0 与不写 rd 的指令类型）；
+    //    reg_status 退役清除不直接写 next，填增量交由 merge（优先级：issue 重命名赢）
     if (slot.cmd.writes_rd() && slot.cmd.rd != 0) {
         n.regs[slot.cmd.rd] = slot.value;
-        if (c.reg_status[slot.cmd.rd] == static_cast<int32_t>(head)) {
-            n.reg_status[slot.cmd.rd] = -1;
-        }
+        d.commit_retire_rd = true;
+        d.commit_rd = static_cast<int>(slot.cmd.rd);
     }
 
     // 4. 控制流：更新预测器（仅 B 型）；检测 mispredict 并给出正确的下一 PC
@@ -126,11 +128,14 @@ void rob_commit(const CPUState& c, CPUState& n,
 
         if (mispredicted) {
             n.need_flush = true;
+            // 恢复 PC 不直接写 next，填增量交由 merge（优先级：恢复目标 > issue 预测流）
             // B 型：taken → 实际目标；not taken → 顺序流 pc+4
             // JALR：目标恒 = branch_target
-            n.pc = (slot.cmd.type == InstrType::B)
-                       ? (slot.branch_taken ? slot.branch_target : slot.next_pc)
-                       : slot.branch_target;
+            d.commit_mispredict = true;
+            d.commit_target = (slot.cmd.type == InstrType::B)
+                                  ? (slot.branch_taken ? slot.branch_target
+                                                       : slot.next_pc)
+                                  : slot.branch_target;
         }
     }
 
