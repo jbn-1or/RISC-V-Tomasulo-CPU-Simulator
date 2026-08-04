@@ -23,8 +23,8 @@ bool CPU::load_program(const std::string& path) {
 
 /// 是否有空闲 RS 槽位
 // 遍历 rs[] 检查是否存在 busy == false
-bool CPU::rs_has_free(const CPUState& /*s*/) const {
-    return false;
+bool CPU::rs_has_free(const CPUState& s) const {
+    return ::riscv::rs_has_free(s);
 }
 
 /// ROB 是否满（环形缓冲，(tail+1)%ROB_SIZE == head）

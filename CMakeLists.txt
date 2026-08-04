@@ -49,3 +49,10 @@ add_executable(rob_test
     src/rob.cpp
 )
 target_include_directories(rob_test PRIVATE include)
+
+# rs unit test
+add_executable(rs_test
+    src/rs_test.cpp
+    src/reservation_station.cpp
+)
+target_include_directories(rs_test PRIVATE include)
