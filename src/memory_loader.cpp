@@ -1,7 +1,7 @@
 #include "memory_loader.hpp"
 
 #include <cctype>
-#include <fstream>
+#include <istream>
 
 namespace riscv {
 
@@ -33,11 +33,10 @@ int read_one_hex(const char* str, unsigned& val) {
 
 }  // namespace
 
-bool load_program_from_data(const std::string& path,
-                            std::map<uint32_t, uint8_t>& memory,
-                            uint32_t& max_addr) {
-    std::ifstream input(path);
-    if (!input.is_open()) {
+bool load_program_from_stream(std::istream& input,
+                              std::map<uint32_t, uint8_t>& memory,
+                              uint32_t& max_addr) {
+    if (!input) {
         return false;
     }
 

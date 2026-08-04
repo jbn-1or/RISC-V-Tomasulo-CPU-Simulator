@@ -112,16 +112,10 @@ uint8_t run() {
     return static_cast<uint8_t>(regs[10] & 0xFFu);
 }
 
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <program.data>" << std::endl;
-        return 1;
-    }
-
-    std::string path = argv[1];
-
-    if (!riscv::load_program_from_data(path, memory, max_addr)) {
-        std::cerr << "Failed to load program: " << path << std::endl;
+int main() {
+    // 从标准输入读入 .data 格式机器指令（与 issue.pdf 要求一致）
+    if (!riscv::load_program_from_stream(std::cin, memory, max_addr)) {
+        std::cerr << "Failed to load program from stdin" << std::endl;
         return 1;
     }
 

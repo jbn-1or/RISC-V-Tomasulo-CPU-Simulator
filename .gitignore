@@ -10,17 +10,8 @@ data/
 .DS_Store
 Thumbs.db
 
-# 测试
-decoder_test.cpp
-decoder_test
-rob_test.cpp
-rs_test.cpp
-lsq_test.cpp
-cdb_test.cpp
-issue_test.cpp
-execute_test.cpp
-flush_test.cpp
-flush_test
+# 单元测试源码（本地开发用，不入库）
+test/
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md

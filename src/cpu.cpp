@@ -14,9 +14,9 @@ CPU::CPU() {
     next = cur;
 }
 
-bool CPU::load_program(const std::string& path) {
+bool CPU::load_program(std::istream& input) {
     uint32_t max_addr;
-    if (!load_program_from_data(path, memory, max_addr))
+    if (!load_program_from_stream(input, memory, max_addr))
         return false;
     cur.pc = 0;  // 从地址 0 开始取指
     return true;

@@ -1,20 +1,14 @@
 #include <cstdint>
 #include <iostream>
-#include <string>
 
 #include "cpu.hpp"
 
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <program.data>" << std::endl;
-        return 1;
-    }
-
-    std::string path = argv[1];
+int main() {
     riscv::CPU cpu;
 
-    if (!cpu.load_program(path)) {
-        std::cerr << "Failed to load program: " << path << std::endl;
+    // 从标准输入读入 .data 格式机器指令（与 issue.pdf 要求一致）
+    if (!cpu.load_program(std::cin)) {
+        std::cerr << "Failed to load program from stdin" << std::endl;
         return 1;
     }
 

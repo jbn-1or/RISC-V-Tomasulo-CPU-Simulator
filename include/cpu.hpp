@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <iosfwd>
 #include <map>
-#include <string>
 
 #include "cpu_state.hpp"
 
@@ -20,7 +20,8 @@ public:
 
     CPU();
 
-    bool load_program(const std::string& path);
+    // 从输入流（如 std::cin）加载 .data 格式机器指令到内存
+    bool load_program(std::istream& input);
     uint8_t run();
 
 private:
