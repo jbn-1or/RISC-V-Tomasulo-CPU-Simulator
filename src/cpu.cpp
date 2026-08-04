@@ -10,21 +10,6 @@
 
 namespace riscv {
 
-namespace {
-
-/// 访存类指令判定：load（lb/lh/lw/lbu/lhu）与 store（sb/sh/sw）。
-// 后续 Execute 阶段路由 RS 就绪项到 ALU / LSQ 时复用，见 DESIGN.md §5.1。
-inline bool is_load_op(const std::string& name) {
-    return name == "lb" || name == "lh" || name == "lw" ||
-           name == "lbu" || name == "lhu";
-}
-
-inline bool is_store_op(const std::string& name) {
-    return name == "sb" || name == "sh" || name == "sw";
-}
-
-}  // namespace
-
 CPU::CPU() {
     next = cur;
 }
@@ -93,8 +78,8 @@ void CPU::issue(const CPUState& c, CPUState& n) {
     // 3. 解码；终止哨兵 0x0ff00513 作为普通指令走完整生命周期，由 commit 阶段停机
     const Command cmd = decode_instruction(ins, c.pc);
 
-    const bool is_load = is_load_op(cmd.cmdname);
-    const bool is_store = is_store_op(cmd.cmdname);
+    const bool is_load = cmd.is_load();
+    const bool is_store = cmd.is_store();
     const bool is_mem = is_load || is_store;
 
     // 4. 资源检查：ROB / RS / LSQ（仅访存类）任一不足 → stall
@@ -163,9 +148,14 @@ void CPU::issue(const CPUState& c, CPUState& n) {
     n.pc = next_pc;
 }
 
-/// 执行阶段：RS 就绪项执行、LSU 推进
-// RS 就绪项路由到 ALU / LSU，LSU 流水线推进
-void CPU::execute(const CPUState& /*c*/, CPUState& /*n*/) {
+/// 执行阶段：RS 就绪项执行、LSQ 流水推进（DESIGN.md §3 步骤 3、§5.1、§5.3）
+// 1) rs_execute：单 ALU 仲裁——就绪非访存项选 age 最小者执行，结果写回
+//    done/result + 分支元数据（is_branch/taken/target），下一周期经 CDB 广播 → ROB 捕获。
+// 2) lsq_advance：load/store 流水推进（启动/推进/完成，含 store-to-load 内存序约束）。
+// 时序：execute 只读 cur（CDB 捕获写 next，本周期的唤醒下一周期才对 execute 可见）。
+void CPU::execute(const CPUState& c, CPUState& n) {
+    ::riscv::rs_execute(c, n);
+    ::riscv::lsq_advance(c, n, memory);
 }
 
 /// CDB 仲裁（组合线）：从完成结果中选一个广播（扫描 RS.done 与 LSQ load 完成项，选 rob_idx 最小者）

@@ -54,4 +54,11 @@ int32_t rs_allocate(const CPUState& c, CPUState& n, const Command& cmd, int32_t 
 /// （唤醒/捕获 tag 统一为 rob_idx，见 DESIGN.md §2 顶部说明）
 void rs_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig);
 
+/// 执行阶段：单 ALU 仲裁（见 DESIGN.md §5.1）——
+/// 从所有就绪（rs_entry_ready）且非访存的 RS 条目中，选 ROB 程序序最早
+/// （age 最小，rob_age）者执行；访存类（load/store）不进入 ALU，由 LSQ 独立执行。
+/// ALU 结果写回该条目：done=true、result=value、分支元数据
+/// is_branch/branch_taken/branch_target（下一周期经 CDB 仲裁广播 → ROB 按 rob_idx 捕获）
+void rs_execute(const CPUState& c, CPUState& n);
+
 }  // namespace riscv

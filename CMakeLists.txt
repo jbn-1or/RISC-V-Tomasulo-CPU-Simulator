@@ -54,6 +54,8 @@ target_include_directories(rob_test PRIVATE include)
 add_executable(rs_test
     src/rs_test.cpp
     src/reservation_station.cpp
+    src/rob.cpp
+    src/alu.cpp
 )
 target_include_directories(rs_test PRIVATE include)
 
@@ -72,6 +74,7 @@ add_executable(cdb_test
     src/reservation_station.cpp
     src/load_store_buffer.cpp
     src/rob.cpp
+    src/alu.cpp
 )
 target_include_directories(cdb_test PRIVATE include)
 
@@ -89,3 +92,18 @@ add_executable(issue_test
     src/alu.cpp
 )
 target_include_directories(issue_test PRIVATE include)
+
+# execute unit test
+add_executable(execute_test
+    src/execute_test.cpp
+    src/cpu.cpp
+    src/instruction_fetch.cpp
+    src/instruction_decoder.cpp
+    src/memory_loader.cpp
+    src/rob.cpp
+    src/reservation_station.cpp
+    src/load_store_buffer.cpp
+    src/cdb.cpp
+    src/alu.cpp
+)
+target_include_directories(execute_test PRIVATE include)

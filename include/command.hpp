@@ -33,4 +33,19 @@ struct Command {
     bool writes_rd() const {
         return type != InstrType::S && type != InstrType::B && type != InstrType::Unknown;
     }
+
+    /// 访存类判定：load（lb/lh/lw/lbu/lhu）
+    bool is_load() const {
+        return cmdname == "lb" || cmdname == "lh" || cmdname == "lw" ||
+               cmdname == "lbu" || cmdname == "lhu";
+    }
+    /// 访存类判定：store（sb/sh/sw）
+    bool is_store() const {
+        return cmdname == "sb" || cmdname == "sh" || cmdname == "sw";
+    }
+    /// 是否为访存类指令（load / store）
+    // Execute 阶段据此把访存指令排除在 ALU 之外（由 LSQ 独立执行，见 DESIGN.md §5.1/§8）
+    bool is_mem() const {
+        return is_load() || is_store();
+    }
 };

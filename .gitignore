@@ -18,6 +18,7 @@ rs_test.cpp
 lsq_test.cpp
 cdb_test.cpp
 issue_test.cpp
+execute_test.cpp
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md

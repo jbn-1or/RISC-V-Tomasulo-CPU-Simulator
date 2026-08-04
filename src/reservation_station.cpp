@@ -1,6 +1,8 @@
 #include "reservation_station.hpp"
 
+#include "alu.hpp"
 #include "cpu_state.hpp"
+#include "rob.hpp"
 
 namespace riscv {
 
@@ -65,6 +67,40 @@ void rs_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
             slot.q2 = -1;
         }
     }
+}
+
+void rs_execute(const CPUState& c, CPUState& n) {
+    // 单 ALU：从就绪非访存条目中选 ROB 程序序最早（age 最小）者执行（§5.1）。
+    //   就绪 = busy && !done && q1==-1 && q2==-1（rs_entry_ready）。
+    //   访存类（load/store）不进入 ALU——地址计算/数据在 LSQ 内独立完成（§5.1/§8），
+    //   其 RS 槽由 LSQ 显式释放（load 经 CDB 广播、store 完成回填时释放）。
+    int32_t best = -1;
+    uint32_t best_age = ROB_SIZE;  // rob_age 对无效索引返回 ROB_SIZE（rob.cpp 防御）
+    for (int i = 0; i < RS_SIZE; ++i) {
+        const RsEntry& e = c.rs[i];
+        if (!rs_entry_ready(e) || e.cmd.is_mem()) {
+            continue;
+        }
+        const uint32_t age = rob_age(c, e.rob_idx);
+        if (age < best_age) {
+            best_age = age;
+            best = i;
+        }
+    }
+    if (best < 0) {
+        return;  // 无就绪非访存项（或全为访存项）→ 本周期 ALU 空闲
+    }
+
+    // 执行：ALU 为组合逻辑，v1/v2 就绪即可计算（读 cur、写 next）
+    const RsEntry& e = c.rs[best];
+    const AluResult res = alu_execute(AluInput{e.cmd, e.v1, e.v2, e.cmd.pc});
+    RsEntry& slot = n.rs[best];
+    slot.done = true;
+    slot.result = res.value;
+    // 控制流元数据（B/J/JALR 有效；J/JALR 恒 taken）写回，供 CDB 广播 → ROB 捕获
+    slot.is_branch = res.is_branch;
+    slot.branch_taken = res.branch_taken;
+    slot.branch_target = res.next_pc;
 }
 
 }  // namespace riscv
