@@ -107,3 +107,18 @@ add_executable(execute_test
     src/alu.cpp
 )
 target_include_directories(execute_test PRIVATE include)
+
+# flush unit test
+add_executable(flush_test
+    src/flush_test.cpp
+    src/cpu.cpp
+    src/instruction_fetch.cpp
+    src/instruction_decoder.cpp
+    src/memory_loader.cpp
+    src/rob.cpp
+    src/reservation_station.cpp
+    src/load_store_buffer.cpp
+    src/cdb.cpp
+    src/alu.cpp
+)
+target_include_directories(flush_test PRIVATE include)

@@ -19,6 +19,8 @@ lsq_test.cpp
 cdb_test.cpp
 issue_test.cpp
 execute_test.cpp
+flush_test.cpp
+flush_test
 
 # 计划文件
 NAIVE_INTERPRETER_PLAN.md
