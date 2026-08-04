@@ -24,7 +24,7 @@ struct RobEntry {
     bool branch_taken = false;
     bool branch_predicted = false;
     uint32_t branch_target = 0;      // 实际目标（B: pc+imm；J/JALR: ALU 计算的真实目标）
-    uint32_t predicted_target = 0;   // 发射时的预测目标（B 无预测目标恒 0；J: pc+imm 精确；JALR: pc+imm 猜测）
+    uint32_t predicted_target = 0;   // 发射时的预测目标（B 无预测目标恒 0；J: pc+imm 精确；JALR: pc+4 not-taken 预测）
     uint32_t next_pc = 0;            // 不跳转顺序流时下一 PC=pc+4
 };
 

@@ -113,7 +113,7 @@ AluResult alu_execute(const AluInput& in) {
         res.next_pc = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jalr") {
         // 真实目标（=rs1+imm 并对齐）写入 next_pc 供 ROB 捕获，
-        // commit 阶段与 predicted_target（pc+imm）比较检测误预测。
+        // commit 阶段与 predicted_target（pc+4，not-taken 预测）比较检测误预测。
         res.is_branch = true;
         res.branch_taken = true;
         res.is_jump = true;

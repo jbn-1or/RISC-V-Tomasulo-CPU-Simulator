@@ -156,11 +156,11 @@ const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
         // I 型 — ecall / ebreak
         case 0b1110011:
             if (funct3 == 0b000) {
-                // imm[0] = raw[20]: 0 = ebreak, 1 = ecall
+                // RISC-V 规范: ecall = 0x00000073 → raw[20]=0；ebreak = 0x00100073 → raw[20]=1
                 if (raw & (1u << 20))
-                    return "ecall";
-                else
                     return "ebreak";
+                else
+                    return "ecall";
             }
             return "unknown_env";
 

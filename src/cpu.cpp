@@ -84,7 +84,7 @@ void CPU::issue(const CPUState& c, CPUState& n) {
         predicted_target = cmd.pc + static_cast<uint32_t>(cmd.imm);
         next_pc = predicted_target;
     } else if (cmd.type == InstrType::I && cmd.cmdname == "jalr") {
-        // JALR：依赖 rs1，predicted_target = pc + 4）；
+        // JALR：依赖 rs1，predicted_target = pc + 4；
         // commit 比较真实目标 != predicted_target → flush
         predicted_taken = true;
         predicted_target = cmd.pc + 4;
