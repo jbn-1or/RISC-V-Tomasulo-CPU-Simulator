@@ -74,3 +74,18 @@ add_executable(cdb_test
     src/rob.cpp
 )
 target_include_directories(cdb_test PRIVATE include)
+
+# issue unit test
+add_executable(issue_test
+    src/issue_test.cpp
+    src/cpu.cpp
+    src/instruction_fetch.cpp
+    src/instruction_decoder.cpp
+    src/memory_loader.cpp
+    src/rob.cpp
+    src/reservation_station.cpp
+    src/load_store_buffer.cpp
+    src/cdb.cpp
+    src/alu.cpp
+)
+target_include_directories(issue_test PRIVATE include)

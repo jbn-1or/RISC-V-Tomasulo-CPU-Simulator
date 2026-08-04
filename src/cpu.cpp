@@ -3,9 +3,27 @@
 #include "cdb.hpp"
 #include "instruction_fetch.hpp"
 #include "instruction_decoder.hpp"
+#include "load_store_buffer.hpp"
 #include "memory_loader.hpp"
+#include "reservation_station.hpp"
+#include "rob.hpp"
 
 namespace riscv {
+
+namespace {
+
+/// 访存类指令判定：load（lb/lh/lw/lbu/lhu）与 store（sb/sh/sw）。
+// 后续 Execute 阶段路由 RS 就绪项到 ALU / LSQ 时复用，见 DESIGN.md §5.1。
+inline bool is_load_op(const std::string& name) {
+    return name == "lb" || name == "lh" || name == "lw" ||
+           name == "lbu" || name == "lhu";
+}
+
+inline bool is_store_op(const std::string& name) {
+    return name == "sb" || name == "sh" || name == "sw";
+}
+
+}  // namespace
 
 CPU::CPU() {
     next = cur;
@@ -34,8 +52,8 @@ bool CPU::rob_is_full(const CPUState& s) const {
 }
 
 /// LSU 是否有空闲槽位接受新访存
-bool CPU::lsu_has_free(const CPUState& /*s*/) const {
-    return false;
+bool CPU::lsu_has_free(const CPUState& s) const {
+    return ::riscv::lsq_has_free(s);
 }
 
 /// ROB 是否为空（head == tail）
@@ -50,7 +68,99 @@ bool CPU::rob_empty(const CPUState& s) const {
 // 更新 reg_status（指向 ROB 条目索引）、更新 PC。
 // 取指读 CPU::memory（单实例，非 CPUState）；终止哨兵 0x0ff00513 作为普通指令发射，
 // 由 commit 阶段停机（见 DESIGN.md §4.1）。
-void CPU::issue(const CPUState& /*c*/, CPUState& /*n*/) {
+//
+// 实现遵循 DESIGN.md §6 的 11 步流程：
+//   1. cur.stopped → 直接返回
+//   2. 取指 fetch_instruction(memory, pc)
+//   3. 解码 decode_instruction(ins, pc)；终止哨兵正常发射
+//   4. 资源检查 ROB/RS/LSQ（访存类）→ 不足则 stall（PC 不推进，下周期重取同一指令）
+//   5. 分支预测：B 用 2-bit 预测器；JAL 目标精确（永不 flush）；JALR not-taken 基线
+//   6. 分配 ROB（is_branch = B||J||JALR；branch_target 由 ALU 执行回填，此处恒 0）
+//   7. 访存类分配 LSQ（先占槽、填 rob_idx，rs_tag 待步骤 9 回填）
+//   8. 分配 RS（访存类同样占 RS 槽，由 LSQ 显式释放，见 §5.1/§5.3）
+//   9. 同周期回填 LSQ.rs_tag
+//  10. 更新 reg_status[rd] = rob_idx（指向 ROB 条目，唤醒 tag 统一为 rob_idx）
+//  11. 更新 PC（控制流在步骤 5 已设预测目标；其余 pc+4）
+void CPU::issue(const CPUState& c, CPUState& n) {
+    // 1. 停机后不再发射
+    if (c.stopped) {
+        return;
+    }
+
+    // 2. 取指（读 CPU::memory 单实例，非 CPUState）
+    const uint32_t ins = fetch_instruction(memory, c.pc);
+
+    // 3. 解码；终止哨兵 0x0ff00513 作为普通指令走完整生命周期，由 commit 阶段停机
+    const Command cmd = decode_instruction(ins, c.pc);
+
+    const bool is_load = is_load_op(cmd.cmdname);
+    const bool is_store = is_store_op(cmd.cmdname);
+    const bool is_mem = is_load || is_store;
+
+    // 4. 资源检查：ROB / RS / LSQ（仅访存类）任一不足 → stall
+    if (rob_is_full(c) || !rs_has_free(c) || (is_mem && !lsu_has_free(c))) {
+        return;
+    }
+
+    // 5. 分支预测
+    bool predicted_taken = false;   // B: 预测器结果；J/JALR: 恒 true
+    uint32_t predicted_target = 0;  // J: pc+imm 精确；JALR: pc+4 猜测；B 无预测目标恒 0
+    uint32_t next_pc = c.pc + 4;    // 默认顺序流（步骤 11 兜底）
+
+    const bool is_control = (cmd.type == InstrType::B) ||
+                            (cmd.type == InstrType::J) ||
+                            (cmd.type == InstrType::I && cmd.cmdname == "jalr");
+
+    if (cmd.type == InstrType::B) {
+        // B 型：2-bit 预测器决定预测方向
+        predicted_taken = c.predictor.predict(cmd.pc);
+        next_pc = predicted_taken ? (cmd.pc + static_cast<uint32_t>(cmd.imm))
+                                  : (cmd.pc + 4);
+    } else if (cmd.type == InstrType::J) {
+        // JAL：目标 = pc + imm 发射时精确已知，预测精确、永不 flush
+        predicted_taken = true;
+        predicted_target = cmd.pc + static_cast<uint32_t>(cmd.imm);
+        next_pc = predicted_target;
+    } else if (cmd.type == InstrType::I && cmd.cmdname == "jalr") {
+        // JALR：目标依赖 rs1，采用 not-taken 预测（predicted_target = pc + 4）；
+        // commit 比较真实目标 != predicted_target → flush
+        predicted_taken = true;
+        predicted_target = cmd.pc + 4;
+        next_pc = predicted_target;
+    }
+
+    // 6. 分配 ROB
+    //    branch_predicted = B ? predicted_taken : true（J/JALR 恒 taken）
+    //    branch_target 恒 0：B/J/JALR 真实目标由 ALU 执行回填、经 CDB 捕获
+    const uint32_t rob_idx = static_cast<uint32_t>(rob_allocate(
+        c, n, cmd,
+        is_control,
+        (cmd.type == InstrType::B) ? predicted_taken : true,
+        0,                    // branch_target（ALU 回填）
+        predicted_target,
+        c.pc + 4));           // next_pc（顺序流 / J/JALR 返回地址）
+
+    // 7. 访存类分配 LSQ（先占 LSQ 槽、填 rob_idx；rs_tag 由步骤 9 同周期回填）
+    int32_t lsq_idx = -1;
+    if (is_mem) {
+        lsq_idx = lsq_allocate(c, n, cmd, static_cast<int32_t>(rob_idx));
+    }
+
+    // 8. 分配 RS（访存类同样占 RS 槽——地址基址/数据经 RS 捕获，槽由 LSQ 显式释放）
+    const int32_t rs_tag = rs_allocate(c, n, cmd, static_cast<int32_t>(rob_idx));
+
+    // 9. 同周期回填关联：LSQ 记录关联 RS 槽（load 经 CDB 广播后 / store 完成回填时释放）
+    if (lsq_idx >= 0) {
+        n.lsu_slots[lsq_idx].rs_tag = rs_tag;
+    }
+
+    // 10. 更新 reg_status：指向 ROB 条目（唤醒 tag 统一为 rob_idx，见 §2 顶部说明）
+    if (cmd.writes_rd() && cmd.rd != 0) {
+        n.reg_status[cmd.rd] = static_cast<int32_t>(rob_idx);
+    }
+
+    // 11. 更新 PC（控制流指令在步骤 5 已设预测目标；其余顺序流 pc+4）
+    n.pc = next_pc;
 }
 
 /// 执行阶段：RS 就绪项执行、LSU 推进
