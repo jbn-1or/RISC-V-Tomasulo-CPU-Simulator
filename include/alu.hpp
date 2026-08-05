@@ -24,11 +24,6 @@ struct AluResult {
     bool is_jump = false;      // 是否为 JAL / JALR
 };
 
-struct ALU {
-    AluInput inp;
-    AluResult outp;
-};
-
 // ALU function
 AluResult alu_execute(const AluInput& in);
 

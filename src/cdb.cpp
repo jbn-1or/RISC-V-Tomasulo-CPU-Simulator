@@ -12,7 +12,6 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
     CdbSignal sig;
 
     uint32_t best_age = ROB_SIZE;
-    int32_t best_rob = -1; // 选中候选的 rob_idx
     bool best_is_load = false;  // 来源：false = RS，true = LSQ load
     int32_t best_idx = -1;  // 选中的槽位索引（RS 槽 或 LSQ 槽）
 
@@ -25,7 +24,6 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
         const uint32_t age = rob_age(c, e.rob_idx);
         if (age < best_age) {
             best_age = age;
-            best_rob = e.rob_idx;
             best_is_load = false;
             best_idx = i;
         }
@@ -40,7 +38,6 @@ CdbSignal cdb_arbitrate(const CPUState& c, CPUState& n) {
         const uint32_t age = rob_age(c, s.rob_idx);
         if (age < best_age) {
             best_age = age;
-            best_rob = s.rob_idx;
             best_is_load = true;
             best_idx = i;
         }

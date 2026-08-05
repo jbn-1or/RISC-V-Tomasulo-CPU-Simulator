@@ -28,8 +28,6 @@ struct Command {
     int32_t imm = 0;          // 立即数(已经做完符号扩展)
     std::string cmdname;     // 指令名，add, addi, lw...
 
-    bool is_branch() const { return type == InstrType::B; }
-    bool is_jump() const { return type == InstrType::J; }
     bool writes_rd() const {
         return type != InstrType::S && type != InstrType::B && type != InstrType::Unknown;
     }
