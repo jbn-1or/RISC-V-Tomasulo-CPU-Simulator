@@ -21,3 +21,6 @@ handlemistake.md
 # CMake 构建产物
 build/
 cmake-build-*/
+
+# OJ 要求的根目录可执行文件（编译产物，不入库）
+/code

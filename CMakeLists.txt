@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 单元测试与 naive 对拍基准默认不构建：
-#   OJ 端执行 `cmake .. && make` 时只产出 tomasulo_simulator 一个可执行文件，
-#   不会因缺失测试源码或多余可执行文件而出错。
+#   OJ 端执行 `cmake .. && make` 时只产出 code 一个可执行文件（OJ 要求编译产物
+#   命名为 code 且位于仓库根目录），不会因缺失测试源码或多余可执行文件而出错。
 #   本地开发用 `cmake -DBUILD_TESTING=ON .. && make` 编译全部 target。
 option(BUILD_TESTING "Build unit tests and naive reference interpreter" OFF)
 
@@ -31,6 +31,12 @@ set(TOMASULO_SOURCES
 
 add_executable(tomasulo_simulator ${TOMASULO_SOURCES})
 target_include_directories(tomasulo_simulator PRIVATE include)
+
+# OJ 要求：编译产物必须是仓库根目录下名为 code 的可执行文件
+set_target_properties(tomasulo_simulator PROPERTIES
+    OUTPUT_NAME code
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
 
 # 以下为本地开发 / 调试用的辅助 target（单元测试与 naive 对拍基准）
 if(BUILD_TESTING)
