@@ -13,5 +13,5 @@ int main() {
 
     uint8_t result = cpu.run();
     std::cout << static_cast<int>(result) << std::endl;
-    return result;
+    return 0;
 }

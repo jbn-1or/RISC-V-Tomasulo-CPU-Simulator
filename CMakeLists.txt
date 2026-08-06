@@ -4,6 +4,8 @@ project(riscv_tomasulo_simulator LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_options(-O2)
+
 # 单元测试与 naive 对拍基准默认不构建：
 #   OJ 端执行 `cmake .. && make` 时只产出 code 一个可执行文件（OJ 要求编译产物
 #   命名为 code 且位于仓库根目录），不会因缺失测试源码或多余可执行文件而出错。
