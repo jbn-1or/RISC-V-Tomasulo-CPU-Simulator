@@ -113,7 +113,6 @@ uint8_t run() {
 }
 
 int main() {
-    // 从标准输入读入 .data 格式机器指令（与 issue.pdf 要求一致）
     if (!riscv::load_program_from_stream(std::cin, memory, max_addr)) {
         std::cerr << "Failed to load program from stdin" << std::endl;
         return 1;

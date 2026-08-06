@@ -32,7 +32,7 @@ inline uint32_t extract_funct7(uint32_t raw) {
 // I 型立即数: bits [31:20]，12 位符号扩展到 32 位
 int32_t extract_imm_i(uint32_t raw) {
     uint32_t imm = (raw >> 20) & 0xFFF;
-    // 符号扩展：算术左移 20 位再算术右移 20 位
+    // 符号扩展：左移 20 位再算术右移 20 位
     return static_cast<int32_t>(imm << 20) >> 20;
 }
 
@@ -138,7 +138,7 @@ const char* get_cmdname(uint32_t opcode, uint32_t funct3, uint32_t funct7,
                 default: return "unknown_i";
             }
 
-        // l 型 — load
+        // I 型 — load
         case 0b0000011:
             switch (funct3) {
                 case 0b000: return "lb";

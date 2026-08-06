@@ -171,7 +171,7 @@ void lsq_advance(const CPUState& c, CPUState& n,
                 continue;
             }
 
-            // load 的每个字节取覆盖它的age最大的已回填 store 的值，无 store取内存。
+            // load 的每个字节取覆盖它的 age 最大的已回填 store 的值，无 store 取内存。
             uint32_t raw = 0;
             for (uint32_t b = 0; b < load_w; ++b) {
                 const uint32_t byte_addr = cs.address + b;
@@ -199,7 +199,7 @@ void lsq_advance(const CPUState& c, CPUState& n,
                 raw |= static_cast<uint32_t>(byte) << (b * 8);
             }
 
-            // 直通 CDB：置 done=true、result=读回值（不写 ROB、不写关联 RS 槽的
+            // 直通 CDB：置 done=true、result=读回值（不写 ROB、不写关联 RS 槽的 result）
             slot.result = ext_load(raw, cs.cmd.funct3);
             slot.done = true;
         } else {

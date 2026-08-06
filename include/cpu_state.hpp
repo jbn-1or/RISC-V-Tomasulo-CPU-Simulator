@@ -10,10 +10,10 @@
 
 namespace riscv {
 
-// 冲突字段增量（小纸条）：commit / issue / flush 对 reg_status / pc 两个
+// 冲突字段增量：commit / issue / flush 对 reg_status / pc 两个
 // 动态冲突字段不直接写 next，改为各产一张只读 cur 的增量，由
 // CPU::merge_conflict 作为唯一写者按代码内固定优先级落笔
-// （等价硬件优先级编码器，见 handlemistake.md §6.4）。
+// （等价硬件优先级编码器）。
 struct ConflictDeltas {
     // commit 阶段产出
     bool commit_retire_rd = false;  // head 退役且写 rd（≠ x0）

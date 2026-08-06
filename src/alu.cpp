@@ -105,7 +105,7 @@ AluResult alu_execute(const AluInput& in) {
     } else if (op == "auipc") {
         res.value = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jal") {
-        // 使经 CDB 广播时 ROB 能按 is_branch 捕获真实目标（next_pc）。
+        // 标识为分支，使 CDB 广播时 ROB 能按 is_branch 捕获真实目标（next_pc）。
         res.is_branch = true;
         res.branch_taken = true;
         res.is_jump = true;
@@ -121,7 +121,7 @@ AluResult alu_execute(const AluInput& in) {
         uint32_t target = in.rs1_val + static_cast<uint32_t>(cmd.imm);
         res.next_pc = target & ~1u;
     }
-    // ecall / ebreak / unknown
+    // ecall / ebreak / unknown：不匹配任何分支，保持默认输出（无写回、无分支标志）
     return res;
 }
 

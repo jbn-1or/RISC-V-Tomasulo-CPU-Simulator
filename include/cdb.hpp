@@ -11,7 +11,7 @@ struct CdbSignal {
     int32_t rob_idx = -1;      // tag：RS/LSQ 的 q1/q2 与 ROB 按此匹配
     uint32_t value = 0;        // 计算结果
 
-    // B/J/JALR,J/JALR 恒 taken
+    // 控制流指令（B/J/JALR）；其中 J/JALR 恒 taken
     bool is_branch = false;
     bool branch_taken = false;
     uint32_t branch_target = 0;

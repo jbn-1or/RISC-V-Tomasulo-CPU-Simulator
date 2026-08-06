@@ -55,7 +55,7 @@ void CPU::issue(const CPUState& c, CPUState& n, ConflictDeltas& d) {
     // 2. 取指
     const uint32_t ins = fetch_instruction(memory, c.pc);
 
-    // 3. 解码；0x0ff00513 作为普通commit 阶段停
+    // 3. 解码；0x0ff00513 作为普通指令发射，由 commit 阶段检测停机（见 DESIGN.md §4.1）
     const Command cmd = decode_instruction(ins, c.pc);
 
     const bool is_load = cmd.is_load();
@@ -117,9 +117,9 @@ void CPU::issue(const CPUState& c, CPUState& n, ConflictDeltas& d) {
         n.lsq[lsq_idx].rs_tag = rs_tag;
     }
 
-    // bug操作数旁路 原因：CDB capture 只读 cur 且先于 issue 执行，看不到本周期才诞生的消费者
-    // 若生产者的广播恰好发生在消费指令被发射的同一周期，其 q 指向的ROB 条目将不会再有第二次广播，导致永久等待
-    // 等待 tag 直接从 cur.reg_status 取（不读 next，见 handlemistake.md §6.4 改动 4）
+    // 操作数旁路 原因：CDB capture 只读 cur 且先于 issue 执行，看不到本周期才诞生的消费者
+    // 若生产者的广播恰好发生在消费指令被发射的同一周期，其 q 指向的 ROB 条目将不会再有第二次广播，导致永久等待
+    // 等待 tag 直接从 cur.reg_status 取（不读 next）
     auto operand_bypass = [&](uint32_t rs, int32_t& q, uint32_t& v) {
         const int32_t qq = c.reg_status[rs];
         if (qq < 0 || qq >= ROB_SIZE) {
@@ -187,7 +187,7 @@ void CPU::commit(const CPUState& c, CPUState& n, ConflictDeltas& d) {
 }
 
 // Flush（分支预测失败）：ROB 的恢复尾巴。
-// 全程只读 cur + 增量 d（不读 next，见 handlemistake.md §6.4 改动 3）：
+// 全程只读 cur + 增量 d（不读 next）：
 // kill 判定基于 cur 的 busy/age，外加 issue 增量里本拍新分配的条目；
 // RS/LSQ/ROB 槽位清除与 rob_tail 回退直接写（本函数钉在 issue 之后，优先级有保证）；
 // reg_status 重建与 PC 恢复不在这里写，填增量交由 merge_conflict。
