@@ -15,3 +15,8 @@ int main() {
     std::cout << static_cast<int>(result) << std::endl;
     return 0;
 }
+
+// cd /home/jbn/PPCA/RISC-V-Tomasulo-CPU-Simulator && ./build/shuffle_test data/testcases/*.data
+// cd /home/jbn/PPCA/RISC-V-Tomasulo-CPU-Simulator && cmake -S . -B build -DBUILD_TESTING=ON && cmake --build build --target shuffle_test -j$(nproc) && ./build/shuffle_test data/testcases/*.data
+// cd /home/jbn/PPCA/RISC-V-Tomasulo-CPU-Simulator && ./build/shuffle_test data/testcases/naive.data
+

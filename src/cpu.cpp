@@ -119,7 +119,6 @@ void CPU::issue(const CPUState& c, CPUState& n, ConflictDeltas& d) {
 
     // 操作数旁路 原因：CDB capture 只读 cur 且先于 issue 执行，看不到本周期才诞生的消费者
     // 若生产者的广播恰好发生在消费指令被发射的同一周期，其 q 指向的 ROB 条目将不会再有第二次广播，导致永久等待
-    // 等待 tag 直接从 cur.reg_status 取（不读 next）
     auto operand_bypass = [&](uint32_t rs, int32_t& q, uint32_t& v) {
         const int32_t qq = c.reg_status[rs];
         if (qq < 0 || qq >= ROB_SIZE) {
@@ -186,11 +185,7 @@ void CPU::commit(const CPUState& c, CPUState& n, ConflictDeltas& d) {
     ::riscv::rob_commit(c, n, memory, d);
 }
 
-// Flush（分支预测失败）：ROB 的恢复尾巴。
-// 全程只读 cur + 增量 d（不读 next）：
-// kill 判定基于 cur 的 busy/age，外加 issue 增量里本拍新分配的条目；
-// RS/LSQ/ROB 槽位清除与 rob_tail 回退直接写（本函数钉在 issue 之后，优先级有保证）；
-// reg_status 重建与 PC 恢复不在这里写，填增量交由 merge_conflict。
+// Flush（分支预测失败）
 void CPU::flush_pipeline(const CPUState& c, CPUState& n, ConflictDeltas& d) {
     const int32_t branch_idx = static_cast<int32_t>(c.rob_head);
     const uint32_t branch_age = rob_age(c, branch_idx);
@@ -308,11 +303,7 @@ uint8_t CPU::run() {
     return run_with_order(0, cycles_unused);
 }
 
-// 主循环实现。四个组合阶段（CDB / commit / execute / issue）只读 cur、
-// 对 reg_status/pc 只产增量，两两可任意交换：shuffle_seed == 0 时按固定顺序
-// CDB→commit→execute→issue，否则每周期用 xorshift 随机数做 Fisher–Yates 打乱。
-// flush（ROB 恢复尾巴，只读 cur + 增量）与 merge_conflict（reg_status/pc 的
-// 优先级编码器 + 唯一写者）钉在最后，对应硬件"组合求值 → 优先级编码器 → 锁存"。
+// 主循环实现
 uint8_t CPU::run_with_order(uint32_t shuffle_seed, uint64_t& cycles_out) {
     constexpr uint64_t MAX_CYCLES = 500000000;
     uint32_t rng = shuffle_seed ? shuffle_seed : 1u;
@@ -361,9 +352,9 @@ uint8_t CPU::run_with_order(uint32_t shuffle_seed, uint64_t& cycles_out) {
             return next.return_value;   // 终止（本周期不计入周期数）
         }
         if (d.commit_mispredict) {
-            flush_pipeline(cur, next, d);  // ROB 恢复尾巴（钉尾）
+            flush_pipeline(cur, next, d);
         }
-        merge_conflict(cur, next, d);      // reg_status / pc 唯一写者（钉尾）
+        merge_conflict(cur, next, d);
         next.cycles = cur.cycles + 1;
         cur = next;
         if (cur.cycles > MAX_CYCLES) {
