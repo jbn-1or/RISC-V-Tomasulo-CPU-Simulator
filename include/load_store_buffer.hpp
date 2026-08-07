@@ -14,11 +14,10 @@ struct LsqEntry {
     Command cmd;
 
     // tag 关联
-    int32_t rs_tag = -1;     // 关联 RS 槽位索引（load 被 CDB 选中后释放该 RS 槽；store 完成回填时释放）
-    int32_t rob_idx = -1;    // 关联 ROB 条目（load 供 ROB 捕获 / store 回填地址与数据）
+    int32_t rs_tag = -1;     // 关联 RS 槽位索引
+    int32_t rob_idx = -1;    // 关联 ROB 条目
 
-    // 操作数等待机制（仿 RS，处理地址基址 / store 数据的 RAW 依赖）。
-    // q1/q2 等待的是 ROB 条目索引（唤醒按 rob_idx 匹配 CDB，见 DESIGN.md §2）。
+    // q1/q2 等待 ROB 条目索引
     uint32_t v1 = 0;
     int32_t q1 = -1;         // 地址基址: 值 + 等待的 ROB 条目索引
     uint32_t v2 = 0;
@@ -49,7 +48,7 @@ int32_t lsq_allocate(const CPUState& c, CPUState& n, const Command& cmd,
 void lsq_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig);
 
 // 执行阶段
-void lsq_advance(const CPUState& c, CPUState& n,
+void lsq_execute(const CPUState& c, CPUState& n,
                  std::map<uint32_t, uint8_t>& memory);
 
 }  // namespace riscv

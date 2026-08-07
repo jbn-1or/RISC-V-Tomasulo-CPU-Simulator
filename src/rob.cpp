@@ -129,8 +129,6 @@ void rob_commit(const CPUState& c, CPUState& n,
         if (mispredicted) {
             n.need_flush = true;
             // 恢复 PC 不直接写 next，填增量交由 merge（优先级：恢复目标 > issue 预测流）
-            // B 型：taken → 实际目标；not taken → 顺序流 pc+4
-            // JALR：目标恒 = branch_target
             d.commit_mispredict = true;
             d.commit_target = (slot.cmd.type == InstrType::B)
                                   ? (slot.branch_taken ? slot.branch_target

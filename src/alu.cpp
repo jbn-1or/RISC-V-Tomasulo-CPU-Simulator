@@ -105,15 +105,12 @@ AluResult alu_execute(const AluInput& in) {
     } else if (op == "auipc") {
         res.value = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jal") {
-        // 标识为分支，使 CDB 广播时 ROB 能按 is_branch 捕获真实目标（next_pc）。
         res.is_branch = true;
         res.branch_taken = true;
         res.is_jump = true;
         res.value = in.pc + 4u;
         res.next_pc = in.pc + static_cast<uint32_t>(cmd.imm);
     } else if (op == "jalr") {
-        // 真实目标（=rs1+imm 并对齐）写入 next_pc 供 ROB 捕获，
-        // commit 阶段与 predicted_target（pc+4，not-taken 预测）比较检测误预测。
         res.is_branch = true;
         res.branch_taken = true;
         res.is_jump = true;
@@ -121,7 +118,7 @@ AluResult alu_execute(const AluInput& in) {
         uint32_t target = in.rs1_val + static_cast<uint32_t>(cmd.imm);
         res.next_pc = target & ~1u;
     }
-    // ecall / ebreak / unknown：不匹配任何分支，保持默认输出（无写回、无分支标志）
+    // ecall / ebreak / unknown
     return res;
 }
 

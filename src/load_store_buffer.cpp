@@ -104,7 +104,7 @@ void lsq_cdb_capture(const CPUState& c, CPUState& n, const CdbSignal& sig) {
     }
 }
 
-void lsq_advance(const CPUState& c, CPUState& n,
+void lsq_execute(const CPUState& c, CPUState& n,
                  std::map<uint32_t, uint8_t>& memory) {
     for (int i = 0; i < LSQ_COUNT; ++i) {
         const LsqEntry& cs = c.lsq[i];
@@ -199,7 +199,7 @@ void lsq_advance(const CPUState& c, CPUState& n,
                 raw |= static_cast<uint32_t>(byte) << (b * 8);
             }
 
-            // 直通 CDB：置 done=true、result=读回值（不写 ROB、不写关联 RS 槽的 result）
+            // 直通 CDB：置 done=true、result=读回值
             slot.result = ext_load(raw, cs.cmd.funct3);
             slot.done = true;
         } else {

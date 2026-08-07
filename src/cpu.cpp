@@ -168,7 +168,7 @@ void CPU::issue(const CPUState& c, CPUState& n, ConflictDeltas& d) {
 // 执行阶段
 void CPU::execute(const CPUState& c, CPUState& n) {
     riscv::rs_execute(c, n);
-    riscv::lsq_advance(c, n, memory);
+    riscv::lsq_execute(c, n, memory);
 }
 
 // CDB 选择
